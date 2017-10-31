@@ -1,0 +1,7 @@
+version: '3'
+services:
+  test1:
+    image: "gcr.io/tensorflow/tensorflow"
+    volumes:
+     - .:/fyp
+    command: "python -u /fyp/abc.py & sleep infinity"
