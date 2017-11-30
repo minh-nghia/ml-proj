@@ -1,23 +1,54 @@
+import sys
 from collections import OrderedDict
 import tensorflow as tf
 import numpy as np
+import yaml
 
-#np.set_printoptions(threshold='nan')
+settings_file = sys.argv[1]
+with open(settings_file, 'r') as yaml_file:
+    settings = yaml.load(yaml_file)
 
-data = np.load('/fyp/data.npy')
+if settings.get('numpy_print_all', False):
+    np.set_printoptions(threshold='nan')
+
+data = np.load(settings['data_file'])
 data = data.tolist()
 
 data_input = tf.placeholder(tf.float32, shape=[None, len(data[0])])
 
 embed_params = OrderedDict([
-    ('principal', {'pos': 0, 'max_index': 256, 'embed_dim': 2}),
-    ('resource', {'pos': 2, 'max_index': 1024, 'embed_dim': 3}),
-    ('request_ip', {'pos': 3, 'max_index': 1024, 'embed_dim': 3}),
-    ('request_zone', {'pos': 4, 'max_index': 64, 'embed_dim': 1}),
-    ('request_country', {'pos': 5, 'max_index': 256, 'embed_dim': 2}),
-    ('resource_ip', {'pos': 6, 'max_index': 1024, 'embed_dim': 3}),
-    ('resource_zone', {'pos': 7, 'max_index': 64, 'embed_dim': 1}),
-    ('resource_country', {'pos': 8, 'max_index': 256, 'embed_dim': 2})
+    ('principal',
+     {'pos': 0,
+      'max_index': settings.get('embeddings']['principal']['max'],
+      'embed_dim': settings.get('embeddings']['principal']['embedded']}),
+    ('resource',
+     {'pos': 2,
+      'max_index': settings.get('embeddings']['resource']['max'],
+      'embed_dim': settings.get('embeddings']['resource']['embedded']}),
+    ('request_ip',
+     {'pos': 3,
+      'max_index': settings.get('embeddings']['request_ip']['max'],
+      'embed_dim': settings.get('embeddings']['request_ip']['embedded']}),
+    ('request_zone',
+     {'pos': 4, 
+      'max_index': settings.get('embeddings']['request_zone']['max'],
+      'embed_dim': settings.get('embeddings']['request_zone']['embedded']}),
+    ('request_country',
+     {'pos': 5, 
+      'max_index': settings.get('embeddings']['request_country']['max'],
+      'embed_dim': settings.get('embeddings']['request_country']['embedded']}),
+    ('resource_ip',
+     {'pos': 6, 
+      'max_index': settings.get('embeddings']['resource_ip']['max'],
+      'embed_dim': settings.get('embeddings']['resource_ip']['embedded']}),
+    ('resource_zone',
+     {'pos': 7, 
+      'max_index': settings.get('embeddings']['resource_zone']['max'],
+      'embed_dim': settings.get('embeddings']['resource_zone']['embedded']}),
+    ('resource_country',
+     {'pos': 8,
+      'max_index': settings.get('embeddings']['resource_country']['max'],
+      'embed_dim': settings.get('embeddings']['resource_country']['embedded']}),
 ])
 
 embeddings = OrderedDict()
@@ -40,12 +71,12 @@ sin_weekday = tf.gather(data_input, [12], axis=-1)
 processed_inputs = tf.concat([embedded_inputs, operation, cos_hour, sin_hour, cos_weekday, sin_weekday], 1)
 
 # Parameters
-learning_rate = 0.001
-training_epochs = 1000
-batch_size = 16
+learning_rate = settings['learning_rate']
+training_epochs = settings['epochs']
+batch_size = settings['batch_size']
 
 enc_input = processed_inputs.get_shape().as_list()[1]
-ae_layers = [20, 10, 2]
+ae_layers = settings['autoencoder_layers']
 
 def encoder(x, hidden_nums):
     layers = [None]*len(hidden_nums)
@@ -110,8 +141,8 @@ def ocsvm(x, nu, batch_size, ramp):
 
   return output, loss
 
-nu = 0.01
-ramp = 0.95
+nu = settings['svm']['nu']
+ramp = settings['svm']['ramp']
 svm_class, svm_loss = ocsvm(processed_inputs, nu, batch_size, ramp)
 
 ae_loss = tf.reduce_mean(tf.pow(decoded - processed_inputs, 2))
