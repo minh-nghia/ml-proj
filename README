@@ -1,0 +1,31 @@
+Source code for BEng Final year project: Data Analytics for Anomaly Detection in sensitive data access.
+Minh Nghia Nguyen (40143951) - Queen's University Belfast
+
+The machine learning model is defined in ocsvm.py.
+For more information please check https://github.com/minh-nghia/AE-1SVM
+
+Coordinates of countries and zones are retrieved using Geopy in convert_coor.py.
+The results are saved in zone_convert.json and country_convert.json (manually at the moment)
+
+JSON database is extracted into Numpy array data.npy in extract_database.py.
+Replace logs.json and alerts.json with proper file names.
+
+The dimensions of the extracted Numpy array are:
+0. Principle index
+1. Operation index
+2. Resource index
+3. Request IP index
+4-6. Request country coordinates
+7-9. Resource zone coordinates
+10-13. Resource zone one-hot encoding of sub-zone (a, b, c, d, .etc)
+14. Daytime cosine.
+15. Daytime sine.
+16. Weektime cosine.
+17. Weektime sine.
+18. 1 if allowed log else -1.
+
+tuning.py runs the model over a range of values for nu and gamma, with 5-fold cross validation
+
+saving.py is the main training code.
+
+UI.py implements the graphical interface using tkInter.

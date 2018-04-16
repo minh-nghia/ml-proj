@@ -1,0 +1,8 @@
+embeddings {
+  tensor_name: "embed/resource_embedding"
+  metadata_path: "resource_metadata.tsv"
+}
+embeddings {
+  tensor_name: "embed/request_ip_embedding"
+  metadata_path: "request_ip_metadata.tsv"
+}
